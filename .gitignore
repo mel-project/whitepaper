@@ -2,3 +2,5 @@
 *.pdf
 *.run.xml
 *.synctex.gz
+*.aux
+*.log
