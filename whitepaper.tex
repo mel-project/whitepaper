@@ -31,8 +31,8 @@ language=Lisp}
 \usepackage{fontspec}
 \setmainfont[BoldFont={* Semibold}]{Linux Libertine O}
 %\linespread{1.1}
-%\setmonofont[Scale=MatchLowercase]{Latin Modern Mono}
-%\setsansfont[Scale=MatchLowercase]{Inter}
+\setmonofont[Scale=MatchLowercase]{Latin Modern Mono}
+\setsansfont[Scale=MatchLowercase]{Inter}
 
 %\usepackage{libertine}
 
@@ -463,13 +463,14 @@ Finally, let's look at some possible applications on Themelio, and how they'd wo
 
 Obviously, on-chain mel transactions can be used directly to send money. However, as Themelio only processes at most 1000 transactions a second, this does not scale to the extent required for global microtransactions.
 
-Fortunately, a solution already exists: payment channels. Payment channels, used in protocols like Lightning Network on Bitcoin or Raiden on Ethereum, allow secure cryptocurrency payments without either trusting third parties or conducting every transaction on the blockchain. Existing payment channel constructions for coin-based blockchains, like the Poon-Dryja channels used in Lightning Network, can easily be ported to Themelio.
+Fortunately, a solution already exists: payment channels. Payment channels, used in protocols like Lightning Network on Bitcoin or Raiden on Ethereum, allow secure cryptocurrency payments without either trusting third parties or conducting every transaction on the blockchain. Existing payment channel constructions for coin-based blockchains, like the Poon-Dryja channels used in Lightning Network, can easily be ported to Themelio. Perhaps more importantly, MelScript allows powerful bidirectional payment channels to be constructed in a straightforward manner without hacks such as the temporary keypairs used in Poon-Dryja channels.
 
-Perhaps more importantly, MelScript allows powerful bidirectional payment channels to be constructed in a straightforward manner without hacks such as the temporary keypairs used in Poon-Dryja channels.
+Compared to payment channel networks on blockchains like Bitcoin or Ethereum, a Themelio PCN would provide far better scalability simply due to the faster blockchain --- after all, opening and closing payment channels is still limited by blockchain throughput. And compared to the traditional banking network, payment channels give immediate trustless finality, without any authorities that can steal funds or reverse payments. Even on the scalability side, a payment channel network on Themelio will greatly outperform traditional methods in volume and latency, allowing custodian-free microtransactions for applciations like paying road tolls.  
 
-\section{Decentralized PKIs}
+\section{Decentralized naming}
 
-`'
+Using blockchains to implement decentralized and secure naming systems is not a new use case. Blockstack, ENS, and Bitforest are all examples of blockchain-backed naming systems, which consistently map human-readable identifiers (such as domain names) to security-critical information like public keys without trusting third parties. 
+
 
 \section{Token systems}
 

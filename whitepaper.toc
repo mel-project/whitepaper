@@ -1,0 +1,41 @@
+\boolfalse {citerequest}\boolfalse {citetracker}\boolfalse {pagetracker}\boolfalse {backtracker}\relax 
+\defcounter {refsection}{0}\relax 
+\vspace {-\cftbeforepartskip }
+\contentsline {chapter}{\numberline {1}{Introduction and motivation}}{5}{chapter.1}
+\contentsline {section}{\numberline {1.1}{The ``blockchain revolution'': expectations vs reality}}{5}{section.1.1}
+\contentsline {subsection}{\numberline {1.1.1}{The promise of blockchains}}{5}{subsection.1.1.1}
+\contentsline {subsection}{\numberline {1.1.2}{Where are all the blockchain apps?}}{5}{subsection.1.1.2}
+\contentsline {section}{\numberline {1.2}{A better blockchain?}}{6}{section.1.2}
+\contentsline {subsection}{\numberline {1.2.1}{Existing attempts}}{6}{subsection.1.2.1}
+\contentsline {subsection}{\numberline {1.2.2}{The crux: a layering problem}}{7}{subsection.1.2.2}
+\contentsline {chapter}{\numberline {2}{Themelio's design}}{9}{chapter.2}
+\contentsline {section}{\numberline {2.1}{Design goals}}{9}{section.2.1}
+\contentsline {subsection}{\numberline {2.1.1}{Goals}}{9}{subsection.2.1.1}
+\contentsline {section}{\numberline {2.2}{A robust transaction model}}{10}{section.2.2}
+\contentsline {subsection}{\numberline {2.2.1}{Coin-based transactions}}{10}{subsection.2.2.1}
+\contentsline {subsection}{\numberline {2.2.2}{Why coins?}}{11}{subsection.2.2.2}
+\contentsline {subsection}{\numberline {2.2.3}{Constraint scripting with MelScript}}{12}{subsection.2.2.3}
+\contentsline {subsection}{\numberline {2.2.4}{Coin-oriented interface}}{14}{subsection.2.2.4}
+\contentsline {section}{\numberline {2.3}{Consensus and trust}}{14}{section.2.3}
+\contentsline {subsection}{\numberline {2.3.1}{Oligarchy with a free press}}{15}{subsection.2.3.1}
+\contentsline {subsection}{\numberline {2.3.2}{Stakeholders: the oligarchy}}{15}{subsection.2.3.2}
+\contentsline {subsubsection}{{Bonded proof of stake}}{15}{subsubsection*.3}
+\contentsline {subsubsection}{{Rewards and slashing}}{16}{subsubsection*.4}
+\contentsline {subsubsection}{{Why two currencies?}}{18}{subsubsection*.6}
+\contentsline {subsubsection}{{Achieving high performance}}{18}{subsubsection*.7}
+\contentsline {subsection}{\numberline {2.3.3}{Auditors: the free press}}{20}{subsection.2.3.3}
+\contentsline {subsubsection}{{Making failure catastrophic}}{20}{subsubsection*.8}
+\contentsline {subsubsection}{{Why consensus nukes?}}{20}{subsubsection*.9}
+\contentsline {subsection}{\numberline {2.3.4}{Clients: thin yet fully secure}}{21}{subsection.2.3.4}
+\contentsline {subsubsection}{{Metastate commitments}}{21}{subsubsection*.10}
+\contentsline {subsubsection}{{Epoch-based stake bonds}}{22}{subsubsection*.11}
+\contentsline {section}{\numberline {2.4}{Cryptocurrency and economics}}{23}{section.2.4}
+\contentsline {subsection}{\numberline {2.4.1}{Mels: low-volatility money}}{23}{subsection.2.4.1}
+\contentsline {subsection}{\numberline {2.4.2}{Better transaction fees}}{23}{subsection.2.4.2}
+\contentsline {chapter}{\numberline {3}{Applications}}{27}{chapter.3}
+\contentsline {section}{\numberline {3.1}{Scalable payment networks}}{27}{section.3.1}
+\contentsline {section}{\numberline {3.2}{Decentralized naming}}{27}{section.3.2}
+\contentsline {section}{\numberline {3.3}{Token systems}}{28}{section.3.3}
+\contentsline {section}{\numberline {3.4}{Layer-2 smart contracts}}{28}{section.3.4}
+\contentsline {section}{\numberline {3.5}{Public-consensus private blockchains}}{28}{section.3.5}
+\contentsline {chapter}{\numberline {4}{Conclusion}}{29}{chapter.4}
