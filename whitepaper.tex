@@ -437,23 +437,23 @@ As in Bitcoin and other public blockchains, each transaction in Themelio include
 
 Thus, we abandon the traditional fee auction model in favor of a system inspired by EIP-1559. Every transaction pays a mel-denominated fee that has two components. A mandatory \textit{base fee} is calculated by multiplying by the \textit{base fee multiplier} the \textit{weight} of a transaction, a metric that roughly measures its cost. Transaction senders can then add a \textit{tip} above and beyond the base fee.
 
-Every time a new block is created, the stakeholder proposing the block can adjust the base fee multiplier by up to 1\% upwards or downwards --- the base fee multiplier then reflects the stake-weighted median of the stakeholders' preferences. Base fees, except for an eighth which is burned, are deposited into a special \textit{fee pool} regardless of who included the transaction into the blockchain; the stakeholder creating a block then withdraws a tiny fraction ($1/65536$) of the fee pool. The net effect is that the base fee of a transaction is distributed to all stakeholders regardless of who made the block that contains the transaction. 
+Every time a new block is created, the stakeholder proposing the block can adjust the base fee multiplier by up to 1\% upwards or downwards --- the base fee multiplier then reflects the stake-weighted median of the stakeholders' preferences. Base fees, except for an eighth which is burned, are deposited into a special \textit{fee pool} regardless of who included the transaction into the blockchain; the stakeholder creating a block then withdraws a tiny fraction ($1/65536$) of the fee pool. The net effect is that the base fee of a transaction is distributed to all stakeholders regardless of who made the block that contains the transaction.
 
 Tips, on the other hand, are simply paid to the block producer, like fees in traditional blockchains. We expect tips to be a small fraction of total fees, and they give an incentive for block producers to actually include transactions instead of freeloading on a fee pool replenished by other, more honest block producers.
 
 \begin{figure}
-    \centering \includegraphics[width=\linewidth]{fees.png}
+    \centering \includegraphics[width=0.7\linewidth]{fees.png}
     \caption{Per-block producer rewards (including met inflation)}
     \label{fig:fees}
 \end{figure}
 
-Figure \ref{fig:fees} illustrates the flow of funds every time a new block is created. 
+Figure \ref{fig:fees} illustrates the flow of funds every time a new block is created.
 
 Why do our changes to the fee market fix its problems? First of all, fee volatility is greatly reduced. When demand fluctuates in the short term, it would be block sizes that fluctuate, not fees. Stakeholders adjust the base fee multiplier to maximize revenue and limit block sizes, but not rigidly at a defined size. One might object that stakeholders can collude to recreate Bitcoin's fee market --- by holding down the multiplier to zero, enforcing an unofficial block size limit, and auctioning off block space based on tips. But a rational stakeholder cartel will not do so, as assuming no change in demand, this will simply greatly increase income volatility without increasing expected total income, while in reality volatile fees will probably scare away some users, actually reducing revenue. Incidentally, this is also why we award base fees to stakeholders rather than burning them as in EIP-1559, since burning base fees will make colluding to create a fee aucion highly profitable.
 
 Secondly, clients no longer need complex algorithms to compute fees. The base fee plus a small tip will be sufficient in all cases to get a transaction onto the blockchain as fast as possible. Applications like wallets or payment processors would easily predict the amount of fees needed.
 
-Finally, although we still reward stakeholders with some met inflation to discourage passive met-holding, the use of a fee pool ensures that even though stakeholders are rewarded mostly from fees, there's no incentive to steal fees. In fact, one can think of the fee pool as a sort of long-term trust fund, derived from fees, for a stable Bitcoin-like block reward. 
+Finally, although we still reward stakeholders with some met inflation to discourage passive met-holding, the use of a fee pool ensures that even though stakeholders are rewarded mostly from fees, there's no incentive to steal fees. In fact, one can think of the fee pool as a sort of long-term trust fund, derived from fees, for a stable Bitcoin-like block reward.
 
 \chapter{Applications}
 
@@ -465,16 +465,50 @@ Obviously, on-chain mel transactions can be used directly to send money. However
 
 Fortunately, a solution already exists: payment channels. Payment channels, used in protocols like Lightning Network on Bitcoin or Raiden on Ethereum, allow secure cryptocurrency payments without either trusting third parties or conducting every transaction on the blockchain. Existing payment channel constructions for coin-based blockchains, like the Poon-Dryja channels used in Lightning Network, can easily be ported to Themelio. Perhaps more importantly, MelScript allows powerful bidirectional payment channels to be constructed in a straightforward manner without hacks such as the temporary keypairs used in Poon-Dryja channels.
 
-Compared to payment channel networks on blockchains like Bitcoin or Ethereum, a Themelio PCN would provide far better scalability simply due to the faster blockchain --- after all, opening and closing payment channels is still limited by blockchain throughput. And compared to the traditional banking network, payment channels give immediate trustless finality, without any authorities that can steal funds or reverse payments. Even on the scalability side, a payment channel network on Themelio will greatly outperform traditional methods in volume and latency, allowing custodian-free microtransactions for applciations like paying road tolls.  
+Compared to payment channel networks on blockchains like Bitcoin or Ethereum, a Themelio PCN would provide far better scalability simply due to the faster blockchain --- after all, opening and closing payment channels is still limited by blockchain throughput. And compared to the traditional banking network, payment channels give immediate trustless finality, without any authorities that can steal funds or reverse payments. Even on the scalability side, a payment channel network on Themelio will greatly outperform traditional methods in volume and latency, allowing custodian-free microtransactions for applciations like paying road tolls.
 
 \section{Decentralized naming}
 
-Using blockchains to implement decentralized and secure naming systems is not a new use case. Blockstack, ENS, and Bitforest are all examples of blockchain-backed naming systems, which consistently map human-readable identifiers (such as domain names) to security-critical information like public keys without trusting third parties. 
+Using blockchains to implement decentralized and secure naming systems is not a new use case. Blockstack, ENS, and Bitforest are all examples of blockchain-backed naming systems, which consistently map human-readable identifiers (such as domain names) to security-critical information like public keys without trusting third parties. Legacy naming systems, like DNS and CA-based PKI, are highly centralized and have very fragile security, so even for traditional centralized services like websites, a blockchain-backed, easily deployable naming system can significantly improve security.
 
+Themelio's coin-based programming paradigm is especially suited for making naming systems. By using a \emph{coin index tree}, a data structure introduced by Bitforest, we can actually encode names as verifiable paths within the transaction DAG and map them to coins. Name transfers after the initial registration are simply transfers of this coin to new owners; more details can be found in the Bitforest paper.
+
+Compared to existing blockchain solutions, a Themelio-based naming system would offer higher performance due to the blockchain's higher throughput, and more importantly, the ability for constant-space thin clients to quickly look up and verify names. Themelio's powerful thin-client abilities allow deploying blockchain-based naming directly to the smallest of edge devices, rather than relying on trusted gateways like in Blockstack. This removes one of the biggest challenges in deploying naming systems with fully decentralized trust.
 
 \section{Token systems}
 
-\section{Layer-2 smart contracts}
+Another major use case for Themelio is for tokens, like fundraising tokens, cryptokitties, and new cryptocurrencies. Right now, a token is most commonly implemented as a big stateful smart contract on Ethereum, following API standards like ERC-20. This way of implementing a token, unfortunately, is prone to error, often leading to critical security vulnerabilities. Scalability is also a big challenge, as massive stateful smart contracts cannot be easily parallelized even with advanced features like sharding.
+
+In Themelio, on the other hand, custom tokens are ridiculously easy to create. Themelio tokens rely on a special case in its transaction verification logic. Transactions must be balanced by currency --- the total values of mels, mets, etc in the input coins spent must be equal to the total values in the outputs --- with the exception that an unlimited number of coins, with unconstrained values, can be created with \textit{unlabeled} units. Outputs with unlabeled units will then create coins in the blockchain state with a new unit derived from the unique ID of the transaction.
+
+Thus, a new cryptocurrency token can be created simply by creating any regular transaction while tacking on an additional unlabeled output with the value set to the maximum supply of the new token. This coin's constraint script will then determine the rules of token issuance --- no other transactions can create coins with the same unit, since custom tokens are always denominated by the first transaction that created them.
+
+As an example, imagine Foobar wants to create a new token, FooCoin. FooCoin would be sold to the public at a fixed rate of 1000 nanomels per coin. Foobar would broadcast a transaction, say with ID \texttt{0xdeadbeef}, with an unlabeled output with an inexhaustibly large value (say $2^{64}$) and the following constraint:
+
+\begin{lstlisting}
+;; first output sends the rest of the FooCoins
+;;   and repeats this constraint
+;; second output sends FooCoin to buyer
+;; third output sends mels to Foobar
+(and (output-like? 0
+      #:currency 0xdeadbeef
+      #:constraint (output-constraint *SELF*))
+     (output-like? 1
+      #:currency 0xdeadbeef)
+     (output-like? 2
+      #:currency 'nTMEL
+      #:constraint FOOBAR
+      #:value (* (output-value (output-ref 0))
+                  1000)))
+\end{lstlisting}
+
+Anybody can then spend this FooCoin-denominated output, diverting some of the FooCoin to himself, leaving the rest with the same constraint, and giving FooBar mels in compensation. FooCoins not encumbered by this constraint freely transact using the same rules as mets and mels do, with no complex smart contracts needed to handle all the cases. Wallet software, payment processors, etc can simply check for coins denominated in ``\texttt{0xdeadbeef}'' to support FooCoins.
+
+Analogous constraints can be used to implement more complex rules for fungible cryptocurrency tokens. Non-fungible tokens are implemented simply by creating an a new token unit with a coin that has a value of 1. Since 1 cannot be further subdivided, this means that only one coin of that token can ever exist.  
+
+\section{Secure computation}
+
+
 
 \section{Public-consensus private blockchains}
 
