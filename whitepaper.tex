@@ -1,5 +1,6 @@
-% !TEX program = xelatex
+% !TEX program = lualatex
 % !BIB program = biber
+%\documentclass[oneside,paper=15cm:22cm,DIV=calc,pagesize]{scrbook}
 \documentclass[headinclude]{scrbook}
 \usepackage{classicthesis}
 %\usepackage[left=1.25in,right=1.25in,top=1in,bottom=1in]{geometry}
@@ -31,8 +32,10 @@ language=Lisp}
 \usepackage{fontspec}
 \setmainfont[BoldFont={* Semibold}]{Linux Libertine O}
 %\linespread{1.1}
-\setmonofont[Scale=MatchLowercase]{Latin Modern Mono}
-\setsansfont[Scale=MatchLowercase]{Inter}
+\setmonofont[Scale=MatchLowercase]{DejaVu Sans Mono}
+\setsansfont[Scale=0.95]{Inter}
+\usepackage{selnolig}
+\nolig{Th}{T|h} % suppress "Th" ligature globally
 
 %\usepackage{libertine}
 
@@ -58,10 +61,10 @@ language=Lisp}
 
 
 \begin{document}
-%\raggedbottom
+\raggedbottom
 \title{Themelio: a layer-0 public blockchain}
-\author{Themelio Labs}
-\date{\today}
+\author{\textsf{Themelio Labs}}
+\date{\texttt{v0.1 (\today)}}
 \maketitle
 
 %\begin{abstract}
@@ -73,7 +76,7 @@ language=Lisp}
 
 \chapter{Introduction and motivation}
 
-\section{The ``blockchain revolution'': expectations vs reality}
+\section{A ``blockchain revolution''?}
 
 \subsection{The promise of blockchains}
 
@@ -102,7 +105,7 @@ However, private blockchains by definition give up much of the security, transpa
 
 \subsection{Existing attempts}
 
-Of course, many projects do attempt to build better blockchains than currently existing ones. One fairly obvious class of ideas is simply compromising between private and public blockchains to get the best of both. ``Consortium'' blockchains --- blockchains where participation is limited to a small number of trusted partners --- are a good example. For example, banks may partner to create a consortium blockchain for an interbank settlement cryptocurrency. Consortium blockchains may also support access, though not participation in the consensus protocol, from the public. Some blockchains, like EOS, even elect the consortium from the wider public.
+Of course, many projects do attempt to build better blockchains than currently existing ones. One fairly obvious idea is simply compromising between private and public blockchains to get the best of both. ``Consortium'' blockchains --- blockchains where participation is limited to a small number of trusted partners --- are a good example. For example, banks may partner to create a consortium blockchain for an interbank settlement cryptocurrency. Consortium blockchains may also support access, though not participation in the consensus protocol, from the public. Some blockchains, like EOS, even elect the consortium from the wider public.
 
 Limiting the number of blockchain consensus participants typically improves performance and reliability for the same reasons private blockchains are better in these aspects: the data needs to be replicated much fewer times. Unfortunately, these ``hybrid'' blockchains retain most of the problems of either public or private blockchains. Those that deliver reliable performance and agile updates end up with the poor security and inadequate decentralization of private blockchains. Other more secure ones inherit the problematic performance and inflexibility of public blockchains. Ultimately, retaining decentralized trust requires wide-scale consensus, while reducing the overhead of consensus necessarily translates into less security and neutrality.
 
@@ -184,9 +187,7 @@ and informs Alice about $A_1$. Bob now ``owns'' $B_4,B_5,B_6$ with a total value
 \end{figure}
 
 
-Transactions are batched into an ever-growing series of \emph{blocks}, each one containing transactions settled in a particular time period. Transactions within a block have no defined order --- the block that a transaction belongs to is the smallest unit of time on the blockchain. Finally, blocks are guaranteed to be \emph{consistent}, so all users of the blockchain see the same blocks and the same transaction DAG.
-
-\marginpar{Consistency isn't guaranteed in traditional proof of work blockchains like Bitcoin, but Themelio guarantees immediate, permanent consistency.}
+Transactions are batched into an ever-growing series of \emph{blocks}, each one containing transactions settled in a particular time period. Transactions within a block have no defined order --- the block that a transaction belongs to is the smallest unit of time on the blockchain. Finally, blocks are guaranteed to be \emph{consistent} \footnote{Consistency isn't guaranteed in traditional proof of work blockchains like Bitcoin, but Themelio guarantees immediate, permanent consistency. This is because we use a Byzantine fault-tolerant consensus algorithm, as we will discuss in \ref{ss:consensus}}, so all users of the blockchain see the same blocks and the same transaction DAG.
 
 \subsection{Why coins?}
 
@@ -196,13 +197,13 @@ But coin-based models are not popular at all among general-purpose blockchains. 
 
 First of all, coins allow Themelio to \textbf{process transactions quickly}. In an account-based model, like in Ethereum or traditional banking, strict global transaction ordering is necessary. Yet coin-based transactions can be processed in any topological order --- we simply need to process the transaction that produces a coin before the transaction that spends it. Transactions within a block can be validated mostly in parallel. This greatly increases performance.
 
-Secondly, a coin-based architecture \textbf{simplifies state transitions}. Blockchains protocols can be thought of as state-transition functions, where each transaction takes in the ``world'' in a certain state (say, Bob having \$5 and Alice \$0) and outputs a different state (Alice and Bob both having \$2.5). To support functionality beyond basic payments, account-based blockchains like Ethereum need arbitrarily mutable global state, accessed by user-programmable ``smart contracts''. However, programming decentralized apps with mutable state is notoriously prone to error \mytodo{cite?}. Complex state transitions are associated with difficult-to-find bugs and blockchain-level performance problems. In a coin-based blockchain, state is extremely simple: the set of all unspent coins. All transitions simply correspond to individual transactions deleting and adding coins atomically. This leads to clearer logic in decentralized apps and faster performance.
+Secondly, a coin-based architecture \textbf{simplifies state transitions}. Blockchains protocols can be thought of as state-transition functions, where each transaction takes in the ``world'' in a certain state (say, Bob having \$5 and Alice \$0) and outputs a different state (Alice and Bob both having \$2.5). To support functionality beyond basic payments, account-based blockchains like Ethereum need arbitrarily mutable global state, accessed by user-programmable ``smart contracts''. However, programming decentralized apps with mutable state is notoriously prone to error. Complex state transitions are associated with difficult-to-find bugs and blockchain-level performance problems. In a coin-based blockchain, state is extremely simple: the set of all unspent coins. All transitions simply correspond to individual transactions deleting and adding coins atomically. This leads to clearer logic in decentralized apps and faster performance.
 
 Finally, coin-based transactions are \textbf{surprisingly expressive}. A very large class of security-critical problems boil down to establishing a consistent, valid graph of interdependent events. For example, in a naming system, a successful name transfer depends on previous events like the previous owner relinquishing control, that owner first registering the name, and so forth. Centralized roots of trust, like notaries, certificate authorities, and banks, almost always serve the role of ensuring consistency of an event graph. In a coin-based blockchain model, the transaction DAG maps extremely well to these event graphs. This means it's easy to write decentralized apps that replicate centralized authorities on Themelio's coin-based model.
 
 However, traditional coin-based architectures exactly like Bitcoin clearly cannot support a wide variety of decentralized apps. Otherwise, why would anybody use other blockchains? Themelio refines the traditional coin-based model with two significant changes: \emph{expressive constraint scripting} and a \textit{coin-oriented application interface}. The former allows programs representing far more than mere ``ownership'' to constrain coin spending. The latter makes it much easier to write high-performance decentralized apps. Let's now examine these two innovative features of Themelio's transaction model.
 
-\subsection{Constraint scripting with MelScript}
+\subsection{Constraint scripting with MelScript} \label{ss:melscript}
 
 Themelio allows users to write very complex unlock constraints with a powerful scripting language, MelScript. Unlike Bitcoin unlock scripts, MelScript can place conditions on any part of the transaction attempting to spend a coin and enables easy development of a wide variety of decentralized apps. Yet unlike Ethereum's EVM, MelScript is Turing-incomplete and has no access to persistent state, eliminating a large class of ``smart contract'' bugs.
 
@@ -246,11 +247,18 @@ Coin structures, of course, are not limited to simple logs. Bitforest \cite{dong
 
 The second innovation that sets Themelio apart from other blockchains is its deeply coin-oriented application interface. Strange as it may seem, existing coin-based blockchains don't actually have coins explicitly in the model that applications see. Instead, blockchain users have to download the entire transaction history, building a transaction DAG and working out which transactions spent which coins by themselves. Without full blockchain access, it's not even possible to securely obtain simple facts like ``what are the coins that I own''.
 
-This means that in existing coin-based blockchains, even simple applications like cryptocurrency wallets can't be secure and scalable at the same time. Either every user downloads the huge and growing transaction history, or a centralized server that does sync the blockchain is trusted to provide users with information.
+This means that in existing coin-based blockchains, even simple applications like cryptocurrency wallets can't be secure and scalable at the same time. Either every user downloads the huge and growing transaction history, or a centralized server that does sync the blockchain is trusted to provide users with information \footnote{This is true even with technologies like Bitcoin's SPV that let clients verify claims that a certain transaction exists. SPV is unable to defend against dishonest nodes that hide coins or claim that spent coins are unspent, rendering basic wallet information untrustworthy.}.
 
-In Themelio, though, coins are first-class citizens. Participants synchronize the coin state, not the entire blockchain history. History older than a few weeks is not required to be stored by the protocol. Sparse Merkle trees committing to data about the coin state allow thin clients to securely obtain information about coins without trusting anyone. Apps see the coin state as a secure database they can freely query. Thus, coin-driven applications, ranging from simple wallets to constraint-driven apps like Bitforest, can scale without needing any centralized trust.
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{coinint.eps}
+    \caption{Application interface of Bitcoin vs Themelio. Squares represent transactions, while circles represent unspent coins.}
+    \label{fig:coinint}
+\end{figure}
 
-\section{Consensus and trust}
+In Themelio, though, coins are first-class citizens. Participants synchronize the coin state, not the entire blockchain history. History older than a few weeks is not required to be stored by the protocol. Sparse Merkle trees committing to data about the coin state allow thin clients to securely obtain information about coins without trusting anyone. Apps see the coin state as a secure database they can freely query. Thus, coin-driven applications, ranging from simple wallets to constraint-driven apps like Bitforest, can scale without needing any centralized trust. Figure \ref{fig:coinint} shows the ``worldview'' of a Bitcoin node as compared to a Themelio node.
+
+\section{Consensus and trust} \label{ss:consensus}
 
 We now look at how nodes in Themelio come to agreement on the status of the network --- decentralized \textbf{consensus}, the foundation of any public blockchain's security. Themelio uses a variation of \emph{bonded proof-of-stake} found in systems such as Tendermint. This is augmented with a novel ``auditor'' system which further decentralizes trust.
 
@@ -259,9 +267,9 @@ We now look at how nodes in Themelio come to agreement on the status of the netw
 Participants in Themelio are divided into three categories by their roles:
 
 \begin{itemize}
-    \item \textbf{Stakeholders} record transactions into new blocks and confirm them using a Byzantine fault-tolerant consensus algorithm between themselves. They communicate with each other through a broadcast protocol which other nodes in the network never participate in. Anybody can become a stakeholder by ``staking'' a cryptoasset. Stakeholders correspond to miners or validators in other systems.
-    \item \textbf{Auditors} download newly created blocks from the stakeholders and gossip them between themselves while storing a local copy of the coin state. Anybody can join the network as a auditor by simply running a piece of software. Auditors verify new blocks decided by the stakeholders and check that the stakeholders never equivocate on the content of a given block height. Auditors roughly correspond to full nodes in other systems, although they have a more important role in Themelio's security.
-    \item \textbf{Clients} are lightweight participants that query the network of auditors to access specific information in the blockchain, yet do not trust any particular auditor.
+    \item \textbf{Stakeholder nodes} record transactions into new blocks and confirm them using a Byzantine fault-tolerant consensus algorithm between themselves. They communicate with each other through a broadcast protocol which other nodes in the network never participate in. Anybody can become a stakeholder by ``staking'' a cryptoasset. Stakeholders correspond to miners or validators in other systems.
+    \item \textbf{Auditor nodes} download newly created blocks from the stakeholders and gossip them between themselves while storing a local copy of the coin state. Anybody can join the network as a auditor by simply running a piece of software. Auditors verify new blocks decided by the stakeholders and check that the stakeholders never equivocate on the content of a given block height. Auditors roughly correspond to full nodes in other systems, although they have a more important role in Themelio's security.
+    \item \textbf{Client nodes} are lightweight participants that query the network of auditors to access specific information in the blockchain, yet do not trust any particular auditor.
 \end{itemize}
 
 From this overview we can already see that the trust model of Themelio differs significantly both from that of traditional public blockchains like Bitcoin and from that of typical private blockchains. This is one of its major innovations. Themelio's trust can be summarized succinctly as an \textbf{``oligarchy with a free press''}
@@ -270,18 +278,16 @@ From this overview we can already see that the trust model of Themelio differs s
 
 \subsubsection{Bonded proof of stake}
 
-In Themelio, a fairly classical Byzantine-resistant fault tolerant algorithm, similar to that used in Tendermint \mytodo{cite}, is used between the \emph{stakeholders} to establish consensus on the content of the blockchain. The stakeholders form an ``oligarchy'': most users are not stakeholders, yet they get to decide the authoritative state of the network.
+In Themelio, a fairly classical Byzantine-resistant fault tolerant algorithm, similar to that used in Tendermint \cite{kwon2014tendermint}, is used between the stakeholders to establish consensus on the content of the blockchain. The stakeholders form an ``oligarchy'': most users are not stakeholders, yet they get to decide the authoritative state of the network.
 
-\marginpar{\textbf{Met} comes from μετοχή (\textit{metokhí}), Greek for ``share'' in the financial sense}
-
-How does anybody become a stakeholder, and how is power distributed between the stakeholders? Themelio uses a variation on a classic technique known as bonded proof of stake, used in systems like Tendermint and Casper. We keep track of a special secondary currency on the blockchain known as the \textit{met}. Mets are traded freely alongside mels, the main cryptocurrency of Themelio, with a regulated supply of 1 met per block (1.05 million mets per year). They can be thought of as ``shares'' in a decentralized corporation in charge of deciding new blocks.
+How does anybody become a stakeholder, and how is power distributed between the stakeholders? Themelio uses a variation on a classic technique known as bonded proof of stake, used in systems like Tendermint and Casper. We keep track of a special secondary currency on the blockchain known as the \textit{met}\footnote{\textbf{Met} comes from μετοχή (\textit{metokhí}), Greek for ``share'' in the financial sense}. Mets are traded freely alongside mels, the main cryptocurrency of Themelio, with a regulated supply of 1 met per block (1.05 million mets per year). They can be thought of as ``shares'' in a decentralized corporation in charge of deciding new blocks.
 
 In order to become a stakeholder, one \emph{stakes} at least 1,000 mets, locking them up for a fixed period of time (at least 500,000 blocks, or approximately 6 months) as a performance bond. During that period of time, the stakeholder obtains voting rights in the consensus algorithm in proportion to the amount of mets staked. The central security assumption Themelio uses is that \textit{at least 2/3 of the staked mets are in the hands of honest stakeholders} --- a fundamental property of Byzantine-fault-tolerant consensus means we can't get a better threshold.
 
 Themelio's system is a variation on \emph{proof of stake} (PoS), a family of blockchain consensus algorithms including Tendermint and Casper. In proof of stake, influence over the consensus process is in proportion to owning an asset, in this case mets. Why did we choose PoS over other consensus algorithms, such as the venerable proof of work (PoW) of Bitcoin, or the proof of authority (PoA) found in consortium and private chains? The Ethereum Proof-of-Stake FAQ \cite{buterin2019pos} give a strong general defense of PoS; we highlight some properties of PoS we consider especially important for Themelio:
 
 \begin{itemize}
-    \item \textbf{Higher security margin}: Attacking a PoS blockchain directly requires expending an vast amount of resources to buy up stake. This is equivalent to around 1/3 of the total value of staking coins (a proxy of the economic value of the blockchain system). Thus, as usage increases, PoS  security will proportionately strengthen until it becomes practically invulnerable to attacks on the consensus protocol. Proof-of-work blockchains like Bitcoin, however, can be subverted quite cheaply. Attacks reverting recent Bitcoin transactions cost less than \$100,000 \mytodo{cite; algorand?}, pocket change compared to the almost \$100 billion Bitcoin market capitalization. Finally, proof of authority, which is not a decentralized solution, is very fragile to centralized attack vectors such as compromise through hacking or government regulation.
+    \item \textbf{Higher security margin}: Attacking a PoS blockchain directly requires expending an vast amount of resources to buy up stake. This is equivalent to around 1/3 of the total value of staking coins (a proxy of the economic value of the blockchain system). Thus, as usage increases, PoS  security will proportionately strengthen until it becomes practically invulnerable to attacks on the consensus protocol. Proof-of-work blockchains like Bitcoin, however, can be subverted quite cheaply. Attacks reverting a full hour of Bitcoin transactions cost less than \$1,000,000 \cite{crypto51}, pocket change compared to the almost \$100 billion Bitcoin market capitalization. Finally, proof of authority, which is not a decentralized solution, is very fragile to centralized attack vectors such as hacking or government regulation. 
     \item \textbf{Immediate finality}: PoS allows easy, secure finality using asynchronous Byzantine fault-tolerant consensus protocols. This means that even if networks are unreliable or malicious, a block that is successfully appended to the blockchain will never be reverted. This eliminates the unpredictable behavior found in ``chain-based'' consensus protocols like proof of work, such as forks, block reorganizations, and eclipse attacks.
     \item \textbf{Stronger incentive-compatibility}: As we will see later, staked bonds allow us to punish misbehaving stakeholders by deleting their stake. In other blockchains, misbehaving miners only lose potential rewards or reputation. As the Ethereum FAQs put it, ``in PoW, we are working directly with the laws of physics. In PoS, we are able to design the protocol in such a way that it has the precise properties that we want - in short, we can optimize the laws of physics in our favor.''
 \end{itemize}
@@ -328,7 +334,7 @@ First of all, for money we want flexible, demand-responsive monetary policies to
 
 Furthermore, demand for equity shares in an efficient market is driven largely by speculation on future cash flow, while demand for cash derives from the need for a medium of exchange. We don't want users of a currency to be forced to speculate on the future transaction fees of a blockchain. Furthermore, increases in currency adoption as a means of exchange shouldn't drive destabilizing bubbles in currency value.
 
-Themelio therefore uses an independent currency, the met, for the role of equity stake. This allows us to use an innovative, decentralized mechanism to stabilize the price of cels (discussed in \mytodo{TODO}) while keeping equity-like behavior for the ``investor'' token.
+Themelio therefore uses an independent currency, the met, for the role of equity stake. This allows us to use an innovative, decentralized mechanism to stabilize the price of cels (discussed in \ref{ss:elasticoin}) while keeping equity-like behavior for the ``investor'' token.
 
 \subsubsection{Achieving high performance}
 
@@ -340,7 +346,7 @@ Although this is a very simple mechanism of restricting the number of consensus 
 
 For example, a common method of deriving a small amount of participants from a large body of coinholders is \textit{delegated proof of stake} (DPoS). In DPoS, coinholders vote for people with voting power proportional to their coin ownership, and only the few with the most votes become ``delegates'' and participate in consensus. EOS is a popular blockchain using DPoS.
 
-Yet although DPoS gives a vote to all coinholders, it insulates coinholders from protocol incentives. Coinholders are not responsible for the actions of the delegates they vote for, while misbehaving delegates receive no punishment other than a loss of reputation. Thus, coinholders have no incentive to vote for ``good'' nodes, delegates have little incentive to behave correctly, and misbehavior is rampant. Unsurprisingly, all the problems of political governance in a representative democracy get imported. Elections involve massive advertising campaigns, vote-buying, and even nationalist agitation \cite{zhihu2019votebuy}. Delegates routinely behave as a corrupted centralized cartel, engaging in actions like censoring transactions \mytodo{cite} and inflating the currency \mytodo{cite}.
+Yet although DPoS gives a vote to all coinholders, it insulates coinholders from protocol incentives. Coinholders are not responsible for the actions of the delegates they vote for, while misbehaving delegates receive no punishment other than a loss of reputation. Thus, coinholders have no incentive to vote for ``good'' nodes, delegates have little incentive to behave correctly, and misbehavior is rampant. Unsurprisingly, all the problems of political governance in a representative democracy get imported. Elections involve massive advertising campaigns, vote-buying, and even nationalist agitation \cite{zhihu2019votebuy}, while delegates often behave as a centralized cartel, engaging in actions like censoring transactions \cite{eoscensor}.
 
 \textit{Sortition} is another approach, used most notably in Algorand \cite{gilad2017algorand}. Periodically, a committee of participants is randomly selected from all coinholders --- each coinholder has a probability to win this ``lottery'' in proportion to the coins that they hold. The committee then participates in a consensus protocol to decide new blocks until the next lottery comes around.
 
@@ -366,13 +372,11 @@ This objective seems a little strange. Why would we ever want our network to sel
 
 The obvious answer is that if we no longer have a 2/3 supermajority of honest stake, the entire system is irrecoverable. More specifically, a well-known result \cite{dwork1988consensus} mathematically proves that consensus protocols running in a partially synchronous network model (that is, network delays are unknown but finite) cannot possibly tolerate more than 1/3 arbitrary faults. So we have to choose between a model where the network stays up, but malicious stakeholders can corrupt the state arbitrarily (rewriting history, giving themselves free money --- or shutting down the network), or one where the only thing a corrupted quorum can do is shut down the network. Clearly, the latter is preferable.
 
-\marginpar{Consensus nuking can be seen as a variation on ``engineering security through coordination problems'', a concept explored in a blog post by Vitalik Buterin \cite{buterin2017coordination}, where attacks by cartels are made impractical because they would require coordinating many users to go along with them.}
-
-More importantly, consensus nuking changes the incentives of potential attackers by making most attacks unprofitable. Consider a blockchain where consensus-breaking attacks (like Bitcoin's 51\% attack) allow arbitrary state corruption. A malicious actor with the ability to execute such attacks can extract huge profits simply through double-spending. With more complex higher-level applications relying on blockchain data, profit opportunities are even more numerous. Thus, if enough rationally self-serving stakeholders collude, they are greatly incentivized to attack the network and destroy its security guarantees.
+More importantly, consensus nuking changes the incentives of potential attackers by making most attacks unprofitable\footnote{Consensus nuking can also be seen as a variation on ``engineering security through coordination problems'', a concept explored in a blog post by Vitalik Buterin \cite{buterin2017coordination}. Attacks by cartels are made impractical because they would require coordinating many users to achieve a cartel-favorable result after the nuke and manual recovery.}. Consider a blockchain where consensus-breaking attacks (like Bitcoin's 51\% attack) allow arbitrary state corruption. A malicious actor with the ability to execute such attacks can extract huge profits simply through double-spending. With more complex higher-level applications relying on blockchain data, profit opportunities are even more numerous. Thus, if enough rationally self-serving stakeholders collude, they are greatly incentivized to attack the network and destroy its security guarantees.
 
 If a successful attack can only result in the network stopping all work, only attackers who benefit from destroying the network will participate. Since a successful attacker must stake a vast amount of mets to take over more than 1/3 of the stake, destroying the network and thus the value of the investment is usually irrational.
 
-Finally, a shutdown when a successful attack occurs forces Themelio users to manually coordinate an emergency ``hard fork'' out-of-band to restore the network. This would involve, at the very least, a redistribution of stakes away from the attacking parties and possibly protocol improvements to prevent future attacks. On the other hand, if the blockchain continues to operate even when stakeholders are corrupting the state, nothing forces users to coordinate a hard fork. It's conceivable that the malicious stakeholder cartel can create a climate of fear or pressure for users to go along with the corrupted chain --- for example, the state corruption might be forced by legal regulation or presented as way of restoring stolen assets. Consensus nuking ensures that these scenarios are impossible.
+Finally, a shutdown when a successful attack occurs forces Themelio users to manually coordinate an emergency ``hard fork'' out-of-band to restore the network. This would involve, at the very least, a redistribution of stakes away from the attacking parties and possibly protocol improvements to prevent future attacks. On the other hand, if the blockchain continues to operate even when stakeholders are corrupting the state, nothing forces users to coordinate a hard fork. It's conceivable that the malicious stakeholder cartel can create a climate of pressure for users to go along with the corrupted chain --- for example, the state corruption might be forced by legal regulation or presented as way of restoring stolen assets. Consensus nuking ensures that these scenarios are impossible.
 
 \subsection{Clients: thin yet fully secure}
 
@@ -415,11 +419,11 @@ So clients simply have to catch up on all the new stake documents they missed --
 
 Finally, we examine the cryptocurrency economy of Themelio, based on a low-volatility currency called the \textbf{mel}.
 
-\subsection{Mels: low-volatility money}
+\subsection{Mels: low-volatility money} \label{ss:elasticoin}
 
 Mels (TMEL) are optimized to be the day-to-day transaction currency on Themelio. One can imagine decentralized apps, grocery stores, and peer-to-peer finance to conduct transactions mainly denominated in TMEL.
 
-The most important attribute of the mel is its \textit{low price volatility}. All mels are minted through a currency issuance algorithm we published called Elasticoin. With Elasticoin, we fix the \emph{cost} of minting new coins to 24 hours of provable sequential computation, instead of using the fixed \emph{schedule} of mining that Bitcoin or Ethereum uses.
+The most important attribute of the mel is its \textit{low price volatility}. All mels are minted through a currency issuance algorithm we published \cite{dong2018bitforest} called Elasticoin. With Elasticoin, we fix the \emph{cost} of minting new coins to 24 hours of provable sequential computation, instead of using the fixed \emph{schedule} of mining that Bitcoin or Ethereum uses.
 
 A fixed minting cost makes supply highly elastic --- increases in mel price above cost will increase supply, while mels trading below cost will dry up the supply of new mels. Elasticoin has a rather elaborate mechanism to make sure that the minting cost does indeed track the cost of running sequential computation for a day, even as computers get faster.
 
@@ -506,13 +510,27 @@ Anybody can then spend this FooCoin-denominated output, diverting some of the Fo
 
 Analogous constraints can be used to implement more complex rules for fungible cryptocurrency tokens. Non-fungible tokens are implemented simply by creating an a new token unit with a coin that has a value of 1. Since 1 cannot be further subdivided, this means that only one coin of that token can ever exist.  
 
-\section{Secure computation}
+\section{Autonomous applications}
 
+The vast majority of Ethereum-style smart contracts deal with ``asset-like'' objects like tokens and names and can usually be translated into a simpler and more robust coin-based version on Themelio. One proposed category of decentralized app, though, typically requires a vast amount of state tracking and complex logic and is hard to implement directly on Themelio --- ownerless, fully autonomous applications. For example, a smart contract on Ethereum might be an autonomous financial company, negotiating legal contracts, generating packaging its assets into financial products, and pay the bills for a marketing website while hiring people to maintain it, all without human intervention.
 
+Autonomous blockchain entities as described do not really exist except as a concept, and in any case such programs would not be able to scale on Ethereum and other present blockchains due to their poor performance. An autonomous application with security rooted on Themelio would have to implement most of its logic outside the blockchain even if Themelio could provide the requisite performance. For example, the autonomous financial company might run its business logic on traditional cloud services, while accepting payment and paying for its own bills with mels and issuing Themelio-based financial assets. This way, the program would not spam the blockchain with transactions every time its internal state changes. Trustless operation can be achieved by synchronizing state through a trustless private blockchain, as described in the next section.
 
-\section{Public-consensus private blockchains}
+\section{Trustless private blockchains}
 
-\chapter{Conclusion}
+For some applications, nothing short of a new blockchain with its own would do. Traditionally, this would require deploying a new blockchain, private or public, just for use within the application. But this greatly reduces security, as compromising a blockchain formed by consensus between a small number of people is much easier than taking over a public blockchain like Themelio or Ethereum.
+
+One solution is to use a \emph{metachain}, also known as a \emph{virtualchain}, where every time a transaction happens on the smaller blockchain, it is embedded into a corresponding transaction on a public blockchain. Clients of the metachain then scan the entire public blockchain for valid-looking transactions to reach a consensus on the state of the metachain --- a very slow process.
+
+Metachains can, of course, be implemented on Themelio, but using Themelio's more expressive features can greatly increase their performance. For example, all transactions claiming to be part of the metachain can be placed in a permissionless Catena log (see \ref{ss:melscript}). Metachain clients could then avoid scanning through the mass of unrelated Themelio transactions. 
+
+If the state transition function of the metachain can be expressed in a short MelScript constraint, Themelio could even enforce the rules of the metachain. This can be combined with using a unique ``non-fungible token'' inside the Catena log to label the metachain. That way, any thin client can request the transaction with the one and only unspent output denominated in that token, and that transaction is guaranteed to contain the latest state of the metachain.
+
+As described, metachains would be public and permissionless, but similar techniques can be used to secure private blockchains. Data in metachains can be encrypted with a key that only authorized parties know, and the Catena log can have a signature-checking constraint to block unauthorized users from spamming the metachain. Permissioned metachains have a very attractive combination --- they inherit the immutability and trustlessness of Themelio, while preventing public access to the contents of the metachain. We believe this is a much better fit for business appliations like bid tendering or supply-chain tracking than private or consortium blockchains.
+
+%\chapter{Conclusion}
+
+%Public blockchains, as originally envisioned, herald a fundamental revolution in the way trust works in distributed systems. 
 
 
 \printbibliography
