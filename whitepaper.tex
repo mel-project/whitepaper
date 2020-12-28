@@ -12,7 +12,10 @@
 \usepackage{listings}
 \lstset{frame=tb,
 basicstyle=\ttfamily,
-language=Lisp}
+language=[5.0]Lua}
+\lstset{
+ morekeywords={let}
+}
 
 \pgfplotsset{compat=1.14}
 
@@ -63,7 +66,7 @@ language=Lisp}
 \raggedbottom
 \title{Themelio: a new paradigm for decentralizing the Internet}
 \author{Themelio Labs}
-\date{Version 1.0}
+\date{Version 1.1}
 \maketitle
 
 %\begin{abstract}
@@ -94,7 +97,7 @@ Yet despite all the hype of a blockchain revolution, almost no production system
 
 Simply put, this is because \emph{public blockchains are not good enough}. Firstly, Nakamoto consensus --- the very innovation that gives public blockchains their robust decentralized consensus --- saddles users with onerous costs. Take Bitcoin as an example: users must synchronize and store the blockchain's entire transaction history, which is hundreds of gigabytes and growing. On top of that, users must wait hours for a transaction to become irreversible when the network is a bit slow.
 
-Furthermore, public blockchains can be quite unreliable. Wildly fluctuating cryptocurrency prices create unnecessary currency risk; congestion leads to spikes in transaction fees; and network problems cause long delays. None of these shortcomings are acceptable in modern production systems. Finally, public blockchains by nature require unanimous agreement on the blockchain protocol. Therefore, protocol upgrades are almost always disruptive and contentious --- every tiny change can shake the whole blockchain ecosystem. Nobody wants to build applications on a foundation that threatens their products' basic integrity with every update.
+Furthermore, public blockchains can be quite unreliable. Wildly fluctuating cryptocurrency prices create significant currency risk, congestion leads to spikes in transaction fees, and network problems cause long delays. None of these shortcomings are acceptable in modern production systems. Finally, public blockchains by nature require unanimous agreement on the blockchain protocol. Therefore, protocol upgrades are almost always disruptive and contentious --- every tiny change can shake the whole blockchain ecosystem. Nobody wants to build applications on a foundation that threatens their products' basic integrity with every update.
 
 Unsurprisingly, blockchains have failed to truly revolutionize the software industry. Instead, their impact is mostly limited to inspiring a breed of centralized databases with the catchy label of ``private blockchains''. Although private blockchains, like those based on Hyperledger Fabric \cite{cachin2016architecture}, use append-only distributed ledgers similar to those of public blockchains, they're generally deployed within an environment isolated from public access, such as across a corporate WAN or even inside a single datacenter. Enterprise applications, such as supply-chain tracking or processing business payments, have an especially strong tendency towards using private blockchains.
 
@@ -139,7 +142,7 @@ Instead, the crucial feature that distinguishes blockchains from all preexisting
 
 Endogenous trust is the single most precious property of blockchains that enables secure applications with properties elusive to pre-blockchain systems. For example, someone using a bank must trust the bank no matter what form of communication protocol is used, yet a Bitcoin user does not need to even know which miner ends up processing their transaction, let alone establish some sort of trust with that miner. Instead, the cryptoeconomics of Bitcoin mining internally incentivize miners to cooperate in such a way that makes the Bitcoin protocol as a whole trustworthy.
 
-Many blockchain failures can, in fact, be analyzed as failures in endogenous trust. Contentious governance problems like the Bitcoin block-size controversy of 2017 or the ``DAO fork'' that split Ethereum into Ethereum and Ethereum Classic arise when external factors incentivize users to override a blockchain's endogenous trust mechanism. Poor internal incentives cause out-of-band coordination to become necessary to prevent game-theoretical issues like ``SPV mining'' in Bitcoin. Even volatile cryptocurrency prices can be analyzed as a lack of an endogenously trustworthy store of value, forcing users to reach for fiat-pegged stablecoins like Tether that altogether forgo endogenous trust.
+Many blockchain failures can, in fact, be analyzed as failures in endogenous trust. Contentious governance problems like the Bitcoin block-size controversy of 2017 or the ``DAO fork'' that split Ethereum into Ethereum and Ethereum Classic arise when external factors incentivize users to override a blockchain's endogenous trust mechanism. Poor internal incentives cause out-of-band coordination to become necessary to prevent game-theoretical issues like ``SPV mining'' in Bitcoin. Even volatile cryptocurrency prices can be analyzed as a lack of an endogenously trustworthy store of value, forcing users to reach for fiat-pegged stablecoins that altogether forgo endogenous trust. In fact, the Ethereum-based DeFi (decentralized finance) market is quite heavily reliant on financial instruments denominated in fiat-pegged tokens like Dai, USDC, and Tether.
 
 Regretfully, the frequency of failure reveals that, in reality, endogenous trust in blockchains is very fragile and often subverted, despite it being the soul of blockchains. Why is that so? An inspection of the state of the art in blockchains reveals the reason.
 
@@ -176,12 +179,12 @@ Current blockchains, as a matter of fact, are very far from the ideal root of tr
 
 \begin{itemize}
     \item \textbf{Minimal governance}: The protocol should be as simple and robust as possible to simply obviate the need for ongoing protocol changes. Deeply embedded infrastructure, such as the Internet Protocol, tend to only be useful if reasonably ``timeless''. This is essentially a stronger version of ``Szabo's Law'' (``blockchains should not be changed for non-technical reasons''), extended even to technical concerns. Current blockchains, on the other hand, regularly introduce consensus-breaking protocol changes, especially complex platform blockchains like Ethereum.
-    \item \textbf{Vertical scalability}: We intentionally avoid pursuing sharding and other horizontal scaling strategies, as they inherently violate logical centralization due to the CAP theorem \cite{brewer2012cap}. Instead, we want a blockchain that effortlessly scales throughput with increasing per-node computational capacity, while supporting fully secure ``thin'' clients and layer-2 strategies such as state channels at an essentially indefinite scale. This is in sharp contrast to present blockchains, where ever-more-subtle shades of eventual consistency are used to support horizontal scaling, protocols treat thin clients as second-class citizens, and most applications are embedded directly in the blockchain state.
+    \item \textbf{Vertical scalability}: We intentionally avoid pursuing sharding and other horizontal scaling strategies, as they must provide a less consistent data model due to the CAP theorem \cite{brewer2012cap}, yet some applications, like censorship-resistant publication, need a strongly consistent broadcast channel. Instead, we want a blockchain that effortlessly scales throughput with increasing per-node computational capacity, while supporting fully secure ``thin'' clients and layer-2 strategies such as state channels to allow essentially indefinite scale for applications like payments that do not require global consistency. This is in sharp contrast to present blockchains, where ever-more-subtle shades of eventual consistency are used to support horizontal scaling, protocols treat thin clients as second-class citizens, and most applications are embedded directly in the blockchain state.
     \item \textbf{Cryptoeconomic robustness}: To maximize endogenous trust, we want a blockchain designed with conservative cryptoeconomic assumptions that work without intervention in a wide variety of environments. This is, again, often neglected in current blockchain designs, especially newer projects focused on the putative scalability, governance, or usability issues.
     \item \textbf{Simple abstractions}: Finally, we always choose simple, easy-to-understand abstractions over potentially more powerful but ``leakier'' ones. For example, we certainly wish to avoid the highly counterintuitive behavior of Nakamoto consensus.
 \end{itemize}
 
-All of these goals attack \emph{systemically infectious} problems in current blockchains when used as a root of trust. No amount of intervening abstraction can protect applications and end users from interventionist governance, sharding-related data inconsistency, cryptoeconomic attacks, and leaky abstractions, all of which can be traced to the application/platform dichotomy and poor endogenous trust. On the other hand, a minimal blockchain that aggressively attacks these systemic problems allows easy encapsulation with well-designed abstractions that hide technical details.
+All of these goals attack \emph{systemically infectious} problems in current blockchains when used as a root of trust. No amount of abstraction can protect applications and end users from interventionist governance, sharding-related data inconsistency, cryptoeconomic attacks, and leaky abstractions, all of which can be traced to the application/platform dichotomy and poor endogenous trust. On the other hand, a minimal blockchain that aggressively attacks these systemic problems allows easy encapsulation with well-designed abstractions that hide technical details.
 
 A minimal blockchain, rather than looking like an application or platform, takes inspiration from the technology underpinning most of modern telecommunication: the Internet Protocol (IP). IP gets packets on a best-effort basis from point A to point B, and nothing more. Unreliable datagrams don't make a developer-friendly interface, but they do provide a firm foundation for ever-changing application protocol stacks. IP is a great illustration of a successful foundational technology. Such protocols are often too simple to support rich applications without intervening protocol stacks, but they are easy to conceptualize, simple to implement, and brutally robust. It is precisely this simplicity that allows it to support the dazzling variety of Internet applications today with practically no changes since the IPv4 specification's publication in 1981.
 
@@ -201,7 +204,7 @@ Themelio and its upper-layer protocols concretely instantiate the concept of a m
 
 \begin{itemize}
     \item \textit{What is the optimal minimal blockchain?} It seems clear that blockchains should be pushed further away from the application, but what should be the division of functionality between the blockchain and upper-layer protocols? Simply removing ``messy'' features from existing blockchains will not do, as their entire architecture has not been designed with our paradigm in mind. Exploration of this question motivated many innovative design choices in Themelio.
-    \item \textit{How to build a ``blockchain-minimizing'' trustless protocol suite?} Except for a few specific ``off-chain'' applications such as state channels and cross-chain transfers, research in algorithmic-trust (``trustless'') protocols have largely assumed a blockchain-embedded or similar environment with ubiquitous logical centralization. We need to design network protocols which use our minimal blockchain to provide critical security guarantee, yet ``live'' largely outside the blockchain to maximize scalability and flexibility.
+    \item \textit{How to build a ``blockchain-minimizing'' trustless protocol suite?} Except for a few specific ``off-chain'' applications such as state channels and cross-chain transfers, research in algorithmic-trust (``trustless'') protocols, like decentralized naming systems or DeFi lending protocols, have largely assumed a blockchain-embedded or similar environment. We need to design network protocols which use our minimal blockchain to provide critical security guarantee, yet ``live'' largely outside the blockchain to maximize scalability and flexibility.
     \item \textit{What do applications in such a paradigm look like?} Finally, we explore specific user-facing applications built in this sort of paradigm. We will see that such applications can be exceptionally user-friendly and reliable compared to current blockchain-based applications, while avoiding the governance and security problems inherent with traditional centralized-trust apps.
 \end{itemize}
 
@@ -237,14 +240,14 @@ We start with a conceptual exploration of Themelio's high-level transaction mode
 
 Themelio's basic transaction model belongs to a family usually known as ``UTXO-based'' or ``coin-based'' models. This is the oldest family of blockchain models, including first-generation blockchains like Bitcoin and Litecoin. In a coin-based model, the blockchain can be understood as a grow-only directed acyclic graph (DAG) of \emph{transactions}. Every transaction on the blockchain takes as input and spends one or more \emph{unspent transaction outputs (UTXOs)} of previous transactions, which are informally known as \textit{coins}. It then produces as output one or more coins that can be spent as input by subsequent transactions.
 
-Every coin represents a given amount of cryptocurrency, known as its \emph{value}, and it includes an \emph{unlock constraint} that specifies what sort of transaction can spend the coin. Each coin can only be spent once. Excepting transactions that ``mine'' more currency, the sum of the values of all the coins spent by a transaction must equal the sum of the values of all the coins created by it.
+Every coin represents a given amount of cryptocurrency, known as its \emph{value}, and it includes an unlock constraint, or using Themelio's terminology a \emph{covenant}, that specifies what sort of transaction can spend the coin. Each coin can only be spent once. Excepting transactions that ``mine'' more currency, the sum of the values of all the coins spent by a transaction must equal the sum of the values of all the coins created by it.
 
-Let's illustrate how coin-based transactions work with a simple example. Assume there are 5 coins identified as $B_1,\dots,B_{5}$, each worth \$1, and each having an unlock constraint specifying ``any transaction that spends me must have Bob's signature''. Informally, we say that Bob owns 5 coins, each one worth \$1. Bob ``owning'' a coin simply means Bob knowing how to satisfy the coin's unlock constraint.
+Let's illustrate how coin-based transactions work with a simple example. Assume there are 5 coins identified as $B_1,\dots,B_{5}$, each worth \$1, and each having a covenant specifying ``any transaction that spends me must have Bob's signature''. Informally, we say that Bob owns 5 coins, each one worth \$1. Bob ``owning'' a coin simply means Bob knowing how to unlock the coin's covenant.
 
 Now, assume that Bob wants to send his friend Alice \$2.5. He creates a new transaction spending $B_1,B_2,B_3$ as input, with two outputs:
 \begin{itemize}
-    \item $A_1$ with value \$2.5 and a constraint requiring Alice's signature.
-    \item $B_6$ with value \$0.5 and a constraint requiring Bob's signature.
+    \item $A_1$ with value \$2.5 and a covenant requiring Alice's signature.
+    \item $B_6$ with value \$0.5 and a covenant requiring Bob's signature.
 \end{itemize}
 and informs Alice about $A_1$. Bob now ``owns'' $B_4,B_5,B_6$ with a total value of \$2.5, and Alice owns $A_1$ with a total value of \$2.5, just as we wanted. Note that Bob had to give himself a new coin for the transaction to balance; this new coin is known as a \emph{change output}. Figure \ref{fig:utxo} from bitcoin.org shows a complex series of interdependent coin-based transactions.
 
@@ -261,35 +264,38 @@ Transactions are batched into an ever-growing series of \emph{blocks}, each one 
 
 In Themelio, we use coin-based transactions with a cryptocurrency that we call the \emph{mel}. We believe that a model of interdependent transactions spending and producing coins, though originally invented only for modeling money transfers, is a very good abstraction on which decentralized-trust applications can be built.
 
-But coin-based models are not popular at all among general-purpose blockchains. Most blockchains attempting to support general decentralized apps use \emph{account and smart-contract} based models. In these models, accounts directly map to sums of money that can be transferred and accounts can have automatically executing code attached. In fact, the only general-purpose blockchain we know of that uses a coin-based model is Qtum. Even there, an ``Account Abstraction Layer'' simulates Ethereum-like accounts to run smart contracts. Why do we believe coins are the way to go?
+But coin-based models are not popular at all among general-purpose blockchains. Most blockchains attempting to support general decentralized apps use \emph{account and smart-contract} based models. In these models, accounts directly map to sums of money that can be transferred and accounts can have automatically executing code attached. In fact, the only general-purpose blockchain we know of that uses a coin-based model is Qtum\cite{qtum}. Even there, an ``Account Abstraction Layer'' simulates Ethereum-like accounts to run smart contracts. Why do we believe coins are the way to go?
 
 First of all, coins allow Themelio to \textbf{process transactions quickly}. In an account-based model, like in Ethereum or traditional banking, strict global transaction ordering is necessary. Yet coin-based transactions can be processed in any topological order --- we simply need to process the transaction that produces a coin before the transaction that spends it. Transactions within a block can be validated mostly in parallel. This greatly increases performance.
 
-Secondly, a coin-based architecture \textbf{simplifies state transitions}. Blockchain protocols can be thought of as state-transition functions, where each transaction takes in the ``world'' in a certain state (say, Bob having \$5 and Alice \$0) and outputs a different state (Alice and Bob both having \$2.5). To support functionality beyond basic payments, account-based blockchains like Ethereum need arbitrarily mutable global state, accessed by user-programmable ``smart contracts''. However, programming decentralized apps with mutable state is notoriously prone to error. Complex state transitions are associated with difficult-to-find bugs and blockchain-level performance problems. In a coin-based blockchain, state is extremely simple: the set of all unspent coins. All transitions simply correspond to individual transactions deleting and adding coins atomically. This leads to clearer logic in decentralized apps and faster performance.
+Secondly, a coin-based architecture \textbf{simplifies state transitions}. Blockchain protocols can be thought of as state-transition functions, where each transaction takes in the ``world'' in a certain state (say, Bob having \$5 and Alice \$0) and outputs a different state (Alice and Bob both having \$2.5). On the other hand, to support functionality beyond basic payments, account-based blockchains like Ethereum need arbitrarily mutable global state, accessed by user-programmable ``smart contracts''. However, programming decentralized apps with mutable state is notoriously prone to error. Complex state transitions are associated with difficult-to-find bugs and blockchain-level performance problems. In a coin-based blockchain, state is extremely simple: the set of all unspent coins. All transitions simply correspond to individual transactions deleting and adding coins atomically, with covenants that only allow valid states. This leads to clearer logic in decentralized apps and faster performance.
 
-Finally, coin-based transactions are \textbf{surprisingly expressive}. A very large class of security-critical problems boil down to establishing a consistent, valid graph of interdependent events. For example, in a naming system, a successful name transfer depends on previous events like the previous owner relinquishing control, that owner first registering the name, and so forth. Centralized roots of trust, like notaries, certificate authorities, and banks, almost always serve the role of ensuring consistency of an event graph. In a coin-based blockchain model, the transaction DAG maps extremely well to these event graphs. This means it's easy to write decentralized apps that replicate centralized authorities on Themelio's coin-based model.
+Finally, coin-based transactions are \textbf{surprisingly expressive}. A very large class of security-critical problems boil down to establishing a consistent graph of interdependent events that satisfies some sort of invariant. For example, in a naming system, a successful name transfer depends on previous events like the previous owner relinquishing control, that owner first registering the name, and so forth. Centralized roots of trust, like notaries, certificate authorities, and banks, almost always serve the role of ensuring consistency of an event graph. In a coin-based blockchain model, the transaction DAG maps extremely well to these event graphs --- events correspond to transactions, and invariants to covenants. This means it's easy to write decentralized apps that replicate centralized authorities on Themelio's coin-based model.
 
-However, traditional coin-based architectures exactly like Bitcoin clearly cannot support a wide variety of decentralized apps. Otherwise, why would anybody use other blockchains? Themelio refines the traditional coin-based model with two significant changes: \emph{expressive constraint scripting} and a \textit{coin-oriented application interface}. The former allows programs representing far more than mere ``ownership'' to constrain coin spending. The latter makes it much easier to write high-performance decentralized apps. Let's now examine these two innovative features of Themelio's transaction model.
+However, traditional coin-based architectures exactly like Bitcoin clearly cannot support a wide variety of decentralized apps. Otherwise, why would anybody use other blockchains? Themelio refines the traditional coin-based model with two significant changes: \emph{expressive covenant scripting} and a \textit{coin-oriented application interface}. The former allows programs representing far more than mere ``ownership'' to constrain coin spending. The latter makes it much easier to write high-performance decentralized apps. Let's now examine these two innovative features of Themelio's transaction model.
 
-\subsection{Constraint scripting with MelScript} \label{ss:melscript}
+\subsection{Covenant scripting with MelScript} \label{ss:melscript}
 
-Themelio allows users to write very complex unlock constraints with a powerful scripting language, MelScript. Unlike Bitcoin unlock scripts, MelScript can place conditions on any part of the transaction attempting to spend a coin and enables easy development of a wide variety of decentralized apps. Yet unlike Ethereum's EVM, MelScript is Turing-incomplete and has no access to persistent state, eliminating a large class of ``smart contract'' bugs.
+Themelio allows users to write very complex covenants with a powerful scripting language, MelScript. Unlike Bitcoin unlock scripts, MelScript can place conditions on any part of the transaction attempting to spend a coin and enables easy development of a wide variety of decentralized apps. Yet unlike Ethereum's EVM, MelScript is Turing-incomplete and has no access to persistent state, eliminating a large class of ``smart contract'' bugs.
 
-MelScript is written in a Lisp-like syntax and compiled to a stack-based bytecode to be embedded in transaction outputs. Simple, Bitcoin-like constraints are straightforward. For example, the following is MelScript for a ``multisignature'' constraint, for coins requiring signatures from both \texttt{ALICE-KEY} and \texttt{BOB-KEY} to be spent:
+MelScript is written in a Lua-like syntax and compiled to a stack-based bytecode, MelVM, to be embedded in transaction outputs. Simple, Bitcoin-like covenants are straightforward. For example, the following is MelScript for a ``multisignature'' covenants, for coins requiring signatures from both \texttt{ALICE\_KEY} and \texttt{BOB\_KEY} to be spent:
 \begin{lstlisting}
-(and (sig-correct? ALICE-KEY)
-     (sig-correct? BOB-KEY))
+is_sig_correct(env::SPEND_TX, ALICE_KEY) and
+is_sig_correct(env::SPEND_TX, BOB_KEY)
 \end{lstlisting}
 
-We can also access certain facts about the blockchain external to the transaction attempting to spend a coin. For example, the following constraint, which can't be expressed in Bitcoin's simplistic constraint language, gives ownership of a coin to Alice if the total number of transactions exceeds a million before the 10,000th block, and Bob otherwise. It can be used as a simple bet between Alice and Bob on Themelio's future adoption:
+We can also access certain facts about the blockchain external to the transaction attempting to spend a coin. For example, the following covenants, which can't be expressed in Bitcoin's simplistic covenants language, gives ownership of a coin to Alice if the total number of transactions exceeds a million before the 10,000th block, and Bob otherwise. It can be used as a simple bet between Alice and Bob on Themelio's future adoption:
 \begin{lstlisting}
-(if (and (> (get-stat 'transaction-count) 1000000)
-         (< (get-stat 'block-height) 10000))
-    (sig-correct? ALICE-KEY)
-    (sig-correct? BOB-KEY))
+let stats = getStats()
+if stats.transaction_count > 1000000 and 
+    stats.block_height > 10000 then
+    is_sig_correct(env::SPEND_TX, ALICE_KEY)
+else
+    is_sig_correct(env::SPEND_TX, BOB_KEY)
+end
 \end{lstlisting}
 
-The most useful constraints in MelScript are not the simple filters demonstrated above, but constraints that constrain constraints. This allows us to embed a wide variety of decentralized, permissionless secure data structures within the transaction graph, which we might call \emph{coin structures}.
+The most useful covenants in MelScript are not the simple filters demonstrated above, but covenants that constrain covenants. This allows us to embed a wide variety of decentralized, permissionless secure data structures within the transaction graph, which we might call \emph{coin structures}.
 
 This is confusing, so let's illustrate the concept with an example. Catena \cite{tomescu2017catena} is an append-only log originally implemented in Bitcoin. The basic idea is simple: a central authority can transparently publish a log of messages by building a transaction chain, each spending the first output coin of the previous transaction. Since coins cannot be spent twice, the authority cannot rewrite, reorder, or delete any log entries after they are published. Figure \ref{fig:catena} is an example of a Catena log.
 
@@ -299,17 +305,16 @@ This is confusing, so let's illustrate the concept with an example. Catena \cite
     \label{fig:catena}
 \end{figure}
 
-In Bitcoin and other existing coin-based blockchains, Catena logs must be maintained by central authorities. Coins forming the chain must be ``owned'' by the log publisher, lest someone spend them for other purposes and ruin the log. This prevents the use of Catena in applications without a central publisher. In Themelio, however, we can easily write a MelScript constraint that only allows transactions that grow the Catena chain to spend the coin. Any coin with the following constraint is forced to be the start of a permissionless Catena chain that can never be broken:
+In Bitcoin and other existing coin-based blockchains, Catena logs must be maintained by central authorities. Coins forming the chain must be ``owned'' by the log publisher, lest someone spend them for other purposes and ruin the log. This prevents the use of Catena in applications without a central publisher. In Themelio, however, we can easily write a covenant that only allows transactions that grow the Catena chain to spend the coin. Any coin with the following covenant is forced to be the start of a permissionless Catena chain that can never be broken:
 \begin{lstlisting}
-;; at least 1 output coin
-;; first output constrained the same way
-;; *SELF* is the coin in which this constraint is embedded
-(and (> (output-count) 0)
-     (eq? (output-constraint (output-ref 0))
-          (output-constraint *SELF*)))
+-- at least 1 output coin
+-- first output constrained the same way
+-- *SELF* is the coin in which this covenant is embedded
+length(env::SPEND_TX.outputs) > 0 and 
+env::SPEND_TX.outpus[0].covhash == env::SELFHASH
 \end{lstlisting}
 
-Coin structures, of course, are not limited to simple logs. Bitforest \cite{dong2018bitforest} builds an entire naming system out of a coin structure that implements an equivocation-proof binary search tree, yet like Catena it must rely on a centralized coin owner when deployed on existing blockchains. Analogous MelScript constraints can be used to implement Bitforest on Themelio as an entirely decentralized and permissionless naming system, with features comparable to naming systems on ``smart contract'' blockchains, like the Ethereum Naming System (ENS).
+Coin structures, of course, are not limited to simple logs. Bitforest \cite{dong2018bitforest} builds an entire naming system out of a coin structure that implements an equivocation-proof binary search tree, yet like Catena it must rely on a centralized coin owner when deployed on existing blockchains. Analogous MelScript covenants can be used to implement Bitforest on Themelio as an entirely decentralized and permissionless naming system, with features comparable to naming systems on ``smart contract'' blockchains, like the Ethereum Naming System (ENS).
 
 \subsection{Coin-oriented interface}
 
@@ -324,7 +329,7 @@ This means that in existing coin-based blockchains, even simple applications lik
     \label{fig:coinint}
 \end{figure}
 
-In Themelio, though, coins are first-class citizens. Participants synchronize the coin state, not the entire blockchain history. History older than a few weeks is not required to be stored by the protocol. Sparse Merkle trees committing to data about the coin state allow thin clients to securely obtain information about coins without trusting anyone. Apps see the coin state as a secure database they can freely query. Thus, coin-driven applications, ranging from simple wallets to constraint-driven apps like Bitforest, can scale without needing any centralized trust. Figure \ref{fig:coinint} shows the ``worldview'' of a Bitcoin node as compared to a Themelio node.
+In Themelio, though, coins are first-class citizens. Participants synchronize the coin state, not the entire blockchain history. History older than a few weeks is not required to be stored by the protocol. Sparse Merkle trees committing to data about the coin state allow thin clients to securely obtain information about coins without trusting anyone. Apps see the coin state as a secure database they can freely query. Thus, coin-driven applications, ranging from simple wallets to covenant-driven apps like Bitforest, can scale without needing any centralized trust. Figure \ref{fig:coinint} shows the ``worldview'' of a Bitcoin node as compared to a Themelio node.
 
 \section{Consensus and trust} \label{ss:consensus}
 
@@ -626,13 +631,13 @@ Blocks in Themelio, like those in almost all blockchains, have constant-size \te
 
 In traditional coin-based blockchains, block headers commit only to the previous block header and the transactions within the block. This means thin clients can only verify claims that a certain transaction occurred in a block --- this is not enough even for basic applications like wallets to be trustless. Account-based blockchains like Ethereum improve on this by committing to the \textit{state}, or all the information needed to validate new transactions. This allows apps like wallets that rely on querying the state to run trustlessly.
 
-In Themelio, the state is simply the set of all unspent coins. We use a sparse Merkle tree to commit in the block header to a mapping of the coin identifier (hash of the transaction that produced the coin and index of the coin) to coin metadata (value, constraint, etc). This allows thin clients to verify whether or not a coin is spent at a certain block height.
+In Themelio, the state is simply the set of all unspent coins. We use a sparse Merkle tree to commit in the block header to a mapping of the coin identifier (hash of the transaction that produced the coin and index of the coin) to coin metadata (value, covenant, etc). This allows thin clients to verify whether or not a coin is spent at a certain block height.
 
 For some simple applications, like verifying a Catena log, this is sufficient. Unfortunately, many applications on coin-based blockchains need to access more than the plain state mapping. For example, wallets would want to know which coins to spend without proofs of payment from all incoming payers.
 
 We therefore commit not just to the state mapping, but also to \textit{metastate}, or metadata about state. Metastate is not strictly necessary for validating blocks, but cryptographic commitments to it in the block header allows more powerful thin clients. This includes information like:
 \begin{itemize}
-    \item Number of unspent coins with a certain constraint
+    \item Number of unspent coins with a certain covenant
     \item Total number of transactions in the block
     \item Current block height
 \end{itemize}
@@ -745,30 +750,9 @@ Another major use case for Themelio is for tokens, like fundraising tokens, cryp
 
 In Themelio, on the other hand, custom tokens are ridiculously easy to create. Themelio tokens rely on a special case in its transaction verification logic. Transactions must be balanced by currency --- the total values of mels, syms, etc in the input coins spent must be equal to the total values in the outputs --- with the exception that an unlimited number of coins, with unconstrained values, can be created with \textit{unlabeled} units. Outputs with unlabeled units will then create coins in the blockchain state with a new unit derived from the unique ID of the transaction.
 
-Thus, a new cryptocurrency token can be created simply by creating any regular transaction while tacking on an additional unlabeled output with the value set to the maximum supply of the new token. This coin's constraint script will then determine the rules of token issuance --- no other transactions can create coins with the same unit, since custom tokens are always denominated by the first transaction that created them.
+Thus, a new cryptocurrency token can be created simply by creating any regular transaction while tacking on an additional unlabeled output with the value set to the maximum supply of the new token. This coin's covenant script will then determine the rules of token issuance --- no other transactions can create coins with the same unit, since custom tokens are always denominated by the first transaction that created them.
 
-As an example, imagine Foobar wants to create a new token, FooCoin. FooCoin would be sold to the public at a fixed rate of 1000 nanomels per coin. Foobar would broadcast a transaction, say with ID \texttt{0xdeadbeef}, with an unlabeled output with an inexhaustibly large value (say $2^{64}$) and the following constraint:
-
-\begin{lstlisting}
-;; first output sends the rest of the FooCoins
-;;   and repeats this constraint
-;; second output sends FooCoin to buyer
-;; third output sends mels to Foobar
-(and (output-like? 0
-      #:currency 0xdeadbeef
-      #:constraint (output-constraint *SELF*))
-     (output-like? 1
-      #:currency 0xdeadbeef)
-     (output-like? 2
-      #:currency 'nTMEL
-      #:constraint FOOBAR
-      #:value (* (output-value (output-ref 0))
-                  1000)))
-\end{lstlisting}
-
-Anybody can then spend this FooCoin-denominated output, diverting some of the FooCoin to himself, leaving the rest with the same constraint, and giving FooBar mels in compensation. FooCoins not encumbered by this constraint freely transact using the same rules as syms and mels do, with no complex smart contracts needed to handle all the cases. Wallet software, payment processors, etc can simply check for coins denominated in ``\texttt{0xdeadbeef}'' to support FooCoins.
-
-Analogous constraints can be used to implement more complex rules for fungible cryptocurrency tokens. Non-fungible tokens are implemented simply by creating an a new token unit with a coin that has a value of 1. Since 1 cannot be further subdivided, this means that only one coin of that token can ever exist.
+Similarly, Themelio can be used to implement non-fungible tokens, like ``cryptokitties''. Non-fungible tokens are implemented simply by creating an a new token unit with a coin that has a value of 1. Since 1 cannot be further subdivided, this means that only one coin of that token can ever exist.
 
 \section{Autonomous applications}
 
@@ -784,9 +768,9 @@ One solution is to use a \emph{metachain}, also known as a \emph{virtualchain}, 
 
 Metachains can, of course, be implemented on Themelio, but using Themelio's more expressive features can greatly increase their performance. For example, all transactions claiming to be part of the metachain can be placed in a permissionless Catena log (see \ref{ss:melscript}). Metachain clients could then avoid scanning through the mass of unrelated Themelio transactions.
 
-If the state transition function of the metachain can be expressed in a short MelScript constraint, Themelio could even enforce the rules of the metachain. This can be combined with using a unique ``non-fungible token'' inside the Catena log to label the metachain. That way, any thin client can request the transaction with the one and only unspent output denominated in that token, and that transaction is guaranteed to contain the latest state of the metachain.
+If the state transition function of the metachain can be expressed in a short MelScript covenant, Themelio could even enforce the rules of the metachain. This can be combined with using a unique ``non-fungible token'' inside the Catena log to label the metachain. That way, any thin client can request the transaction with the one and only unspent output denominated in that token, and that transaction is guaranteed to contain the latest state of the metachain.
 
-As described, metachains would be public and permissionless, but similar techniques can be used to secure private blockchains. Data in metachains can be encrypted with a key that only authorized parties know, and the Catena log can have a signature-checking constraint to block unauthorized users from spamming the metachain. Permissioned metachains have a very attractive combination --- they inherit the immutability and trustlessness of Themelio, while preventing public access to the contents of the metachain. We believe this is a much better fit for business applications like bid tendering or supply-chain tracking than private or consortium blockchains.
+As described, metachains would be public and permissionless, but similar techniques can be used to secure private blockchains. Data in metachains can be encrypted with a key that only authorized parties know, and the Catena log can have a signature-checking covenant to block unauthorized users from spamming the metachain. Permissioned metachains have a very attractive combination --- they inherit the immutability and trustlessness of Themelio, while preventing public access to the contents of the metachain. We believe this is a much better fit for business applications like bid tendering or supply-chain tracking than private or consortium blockchains.
 
 \chapter*{Conclusion}
 
